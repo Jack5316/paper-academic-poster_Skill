@@ -2,4 +2,4 @@ policy:
   allow_implicit_invocation: false
 interface:
   display_name: Paper Academic Poster
-  short_description: Turn papers into GPT Image 2 direct research posters
+  short_description: Turn papers into divide-and-compose research posters

@@ -1,6 +1,6 @@
 # Academic Paper Style — Default for Peer-Reviewed Posters
 
-Use this style for posters anchored to a real journal article (peer-review or pre-print). Default for `paper-academic-poster` when the source is a finished paper with formal abstract, named authors, ISSN/DOI, and publishable claims. Validated 2026-05-03 on the OpenClaw / 图书情报知识 paper (v7).
+Use this style for posters anchored to a real journal article (peer-review or pre-print). Default for `paper-academic-poster` when the source is a finished paper with formal abstract, named authors, ISSN/DOI, and publishable claims. The current production route is divide-and-compose: use this file as a local composition style spec, not as a one-shot full-poster prompt.
 
 ## Visual Identity
 
@@ -46,9 +46,9 @@ Use this style for posters anchored to a real journal article (peer-review or pr
 5. **Four-impact band**: distillation of theoretical claims, given as navy cards so they read as "secondary structure" rather than as the headline.
 6. **ORCID footer**: small academic credibility signal, like a journal byline.
 
-## Critical Text Rules (avoid GPT Image 2 corruption)
+## Critical Text Rules
 
-GPT Image 2 corrupts long Chinese sentences (typical failure: 竖心旁 doubling, e.g. `情` → `忄忄青`). Two-layer rule:
+Render text locally whenever possible. If GPT Image 2 is used for a sub-image, avoid Chinese text inside that generated asset or keep it to a few large labels. The two-layer rule still applies to local composition and any generated labels:
 
 ### Proper nouns must render in full
 
@@ -76,7 +76,7 @@ Not this (will corrupt):
 持续的主动推送会使用户从主动寻者退化为被动接受者，削弱其认知能力。
 ```
 
-If after generation any character looks corrupted (compare 「情」 「报」 「学」 against expected), regenerate with the same prompt — same-prompt different-seed runs typically clear up isolated corruption.
+If any generated sub-image corrupts Chinese characters, regenerate the sub-image without text and place the label locally.
 
 ## Material Selection Principle
 
@@ -85,10 +85,6 @@ The centerpiece slot ("OpenClaw 案例剖面" / "Case Anatomy") is for **what on
 - For OpenClaw paper: featured the **multi-agent debate** + **5-layer architecture**, demoted the four impact themes (信息行为 / 知识生产 / 人机角色 / 风险挑战) to a secondary band, because those themes are widely discussed elsewhere.
 - General principle: identify which figures/exhibits in the paper are *first-of-its-kind / experiment-actually-run / system-actually-built*. Those go in the centerpiece. The reframing/conceptual claims go in the secondary band.
 
-## Validated reference output
+## Composition Template
 
-`output/poster_v7_dense.png` (2416×3424, 6.9 MB) — generated 2026-05-03, prompt at `output/poster_v7_prompt.txt`.
-
-## Prompt Template
-
-See `references/academic-paper-style-prompt-template.md` for the full prompt structure. Adapt by replacing paper-specific content (title, abstract, architecture layers, debate transcript, impact cards) while preserving the layout skeleton, palette rules, and text rules.
+See `references/academic-paper-style-prompt-template.md` for the full region/component structure. Adapt by replacing paper-specific content (title, abstract, architecture layers, evidence transcript, impact cards) while preserving the layout skeleton, palette rules, and text rules.

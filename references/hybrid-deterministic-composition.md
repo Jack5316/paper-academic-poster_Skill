@@ -1,52 +1,104 @@
-# Hybrid Deterministic Poster Composition Notes
+# Divide-and-Compose Poster Production Notes
 
-Use these notes only when the user explicitly requests or authorizes local deterministic/hybrid composition for exact text, exact layout, PDF export, or source-faithful evidence reproduction. Dense claims, Chinese text, exact numbers, or evidence figures are no longer enough by themselves to leave the default GPT Image 2 direct route.
-
-Scope boundary: do not use this hybrid deterministic route for normal paper-to-poster requests. Use the direct GPT Image 2 route in `production-contract.md`: attach source images as references, generate one complete poster, and only resize the whole generated image if 4K delivery is needed and the active route allows it. Enter this file only after explicit user authorization for local composition.
+Use these notes for the default `paper-academic-poster` route. The poster is produced by decomposition: read the paper, plan semantic regions, generate or render each component with the most reliable method, then compose the final A0-ratio image deterministically.
 
 ## When to use
 
-- User asks for a locally composed, source-faithful, exact-text academic poster.
-- User asks for print/PDF production where deterministic text/evidence fidelity outranks GPT Image 2 direct authorship.
-- Direct GPT Image 2 attempts fail QC and the user authorizes switching to deterministic/hybrid composition.
+- Normal paper-to-poster requests.
+- Chinese-text-heavy, evidence-rich, exact-number, source-figure, print/PDF, 4K, or dense-coverage requests.
+- Design-driven requests where the poster needs a distinctive anchor but still must preserve text and evidence quality.
 
-## Adaptive Chinese conceptual poster design pattern
+Use a different route only when the user explicitly asks for a one-shot GPT Image 2 whole-poster image or rejects local layout/text composition.
 
-Use this pattern inside the hybrid/deterministic family when the paper is concept-heavy and Chinese-text-heavy, especially for information science, AI agents, workflow/system papers, or papers whose strongest visual evidence is architecture diagrams, pipelines, screenshots, tables, or conceptual frameworks. Treat the pattern as a design discipline, not a template.
+## Region Planning
+
+Start with a compact design reading:
+
+- What is the central thesis?
+- What is the paper's distinctive anchor: named system, case, dataset, experiment, transcript, data exhibit, or original conceptual move?
+- Which evidence should be source-preserved?
+- Which concept figures should be redrawn?
+- Which regions benefit from generated art rather than deterministic drawing?
+
+Then create a region plan. Typical regions:
+
+- `header`: exact title, authors, affiliation, venue/journal/year/DOI if useful.
+- `context`: abstract, motivation, research question, or conceptual tension.
+- `method`: architecture, pipeline, framework, experimental design, or analytical model.
+- `anchor`: the largest slot; the thing only this paper demonstrates.
+- `evidence`: source screenshots, data charts, tables, transcripts, photos, or observation artifacts.
+- `results`: key numbers, baselines, contributions, or section logic.
+- `implications`: impact, limitations, risks, future work.
+- `footer`: source boundary, keywords, ORCID, short takeaway.
+
+Each region gets one strategy: `local-text`, `source-crop`, `deterministic-diagram`, `generated-subimage`, or `mixed-panel`.
+
+## Component Production
+
+### Local text
+
+Render title, authors, headings, captions, bullets, numeric claims, venue, DOI/ORCID, and Chinese body text locally with installed fonts. Wrap text explicitly. Never rely on GPT Image 2 for dense or exact text.
+
+### Source evidence
+
+Extract PDF page renders and embedded images with PyMuPDF/pdfimages/pdftoppm or equivalent. Crop evidence with intent: remove margins/noise, keep labels needed for interpretation, and pair it with deterministic captions or evidence-to-claim notes. Use 2-4 high-value evidence assets by default unless the user explicitly asks for density.
+
+### Deterministic diagrams
+
+Redraw framework, box/arrow, pipeline, architecture, formula, and compact table content as SVG/HTML/CSS/PIL/Canvas. Preserve labels, ordering, arrows, groupings, and qualifiers. Use consistent line weights, icons, typography, and color tokens across diagrams.
+
+### Generated sub-images
+
+Use GPT Image 2 for no-text or low-text sub-images: atmosphere, hero illustration, background field, icon sheet, visual metaphor, stylized connector, or illustrative mockup. Generate these independently and inspect them before composition. For prompts and helper usage, see `references/gpt-image-2-direct-reference-assets.md`.
+
+If a generated panel contains pseudo-text, crop or regenerate the panel before composition. Do not hide fake text under local labels unless it is fully covered and irrelevant.
+
+## Composition
+
+Build the full poster deterministically:
+
+- A0/A-series portrait ratio: 841:1189.
+- Default PNG: `2480x3508` or higher.
+- 4K delivery: `2896x4096` or higher.
+- Use local fonts for all Chinese/English text.
+- Use stable dimensions for repeated cards, grids, icon buttons, panels, and evidence crops.
+- Avoid cards-inside-cards; use full-width bands, framed evidence panels, and unframed section layouts.
+- Use a consistent palette and spacing scale. Do not let generated sub-images dictate unrelated colors unless the region plan says so.
+- Export `poster.png`; export `poster.pdf` when print workflow is useful.
+
+## Adaptive Chinese Conceptual Poster Pattern
+
+Use this pattern when the paper is concept-heavy and Chinese-text-heavy, especially for information science, AI agents, workflow/system papers, or papers whose strongest visual evidence is architecture diagrams, pipelines, screenshots, tables, or conceptual frameworks.
 
 - Story hierarchy is adaptive: first decide what the paper is really about, what contrast or transformation makes it memorable, and which evidence should become the visual anchor. Only then choose layout.
-- Possible rhythms include formal conference poster, case anatomy, evidence wall, conceptual before→after, pipeline dissection, or magazine-style feature. Do not force title-band / framework / case-block / cards if another structure better serves the paper.
+- Possible rhythms include formal conference poster, case anatomy, evidence wall, conceptual before-after, pipeline dissection, or magazine-style feature. Do not force title-band / framework / case-block / cards if another structure better serves the paper.
 - Formal metadata, framework contrast, case anatomy, and impact cards are optional ingredients. Use them when they clarify the thesis; omit or rearrange them when they dilute the design.
-- Crop and curate ruthlessly: select 2–4 high-value evidence assets at most for a single poster unless the user explicitly requests density. Enlarge what matters, remove margins/noise, and pair evidence with a short interpretive claim.
+- Crop and curate ruthlessly: select 2-4 high-value evidence assets at most for a single poster unless the user explicitly requests density.
 - For concept diagrams such as “三要素 → 四要素”, redraw deterministically only after understanding the logic. Make it visually expressive but source-faithful.
 - Aesthetic discipline matters: maintain a coherent palette, type rhythm, icon style, line weight, and whitespace. Avoid generic pastel dashboards, rigid templates, ornamental backgrounds, and mechanically copied layouts.
-- If using GPT Image 2 for a no-text background, atmosphere panel, or design exploration, compare available routes when practical. YouMind is acceptable and may be preferred when it gives sharper or more poster-like native results; final choice must be based on inspected output quality, not provider habit.
 
-## Proven route
+## Proven Route
 
 1. Extract PDF text and page renders with PyMuPDF.
 2. Create a contact sheet for page renders and extracted images; inspect with vision/OCR to identify figure numbers, captions, and whether each asset is evidence vs concept.
-3. Use GPT Image 2 only for a no-text atmosphere/background or hero visual. Prompt must explicitly say no words, no letters, no QR code, no logos, no watermark.
-4. Build the full A0-ratio poster deterministically (e.g., PIL/SVG/HTML):
-   - A0 canvas ratio: 841:1189; delivery PNG can be 2480×3508 or higher. If the user asks for 4K, use an actual 4K long edge such as 2896×4096 px and verify it from the saved file.
-   - Use local fonts for all Chinese/English text.
-   - Draw concept diagrams with explicit nodes/arrows copied from the source logic.
-   - Insert evidence screenshots/tables/photos from original crops; do not recreate them with image generation.
-5. Write a manifest with source boundary, paper metadata, route/model, evidence assets used, numeric-claim anchors, output files, and QC status.
-6. Run vision/OCR QC on the rendered poster, not only the source PDF.
+3. Write `region_plan.json` or include region planning in `manifest.json`.
+4. Generate only the sub-images that need image generation. Prompt must specify component role, slot dimensions, style, and no dense text.
+5. Build the full poster deterministically with exact local text, source crops, deterministic diagrams, and generated sub-images.
+6. Write a manifest with source boundary, paper metadata, route/model, region plan, evidence assets used, generated sub-images, numeric-claim anchors, output files, and QC status.
+7. Run visual/OCR QC on the rendered poster, not only the source PDF or individual components.
 
-## QC pitfalls found in practice
+## QC Pitfalls
 
 - Text drawn over a transparent/light title box can look blank to vision reviewers even when technically present; prefer higher-contrast filled panels for key claims.
 - Long one-line footer or quality-gate text can appear clipped; wrap it inside its panel with explicit max width.
 - Tool/brand names must be normalized after deterministic rendering (e.g., `OpenClaw`, not `Openclaw`).
-- Evidence thumbnails may be too small to read; if used as proof thumbnails, label them as source evidence and summarize the claim nearby. For source-PDF screenshots explicitly requested by the user, include a dedicated evidence gallery plus an evidence-to-claim mapping, not just decorative thumbnails.
-- For adaptive Chinese conceptual posters, both tiny unreadable thumbnails and oversized decorative screenshots are failure modes: crop fewer assets, enlarge only what advances the thesis, and summarize the evidence nearby.
+- Evidence thumbnails may be too small to read; if used as proof thumbnails, label them as source evidence and summarize the claim nearby.
+- Both tiny unreadable thumbnails and oversized decorative screenshots are failure modes: crop fewer assets, enlarge only what advances the thesis, and summarize the evidence nearby.
 - Image-generation prompts saying “no words” still need output inspection; generated backgrounds may introduce pseudo text/logos.
 - Phone-preview QC: view the rendered poster at roughly 50% scale or on the delivery surface. The poster’s chosen hierarchy must still be evident: title/topic, central argument, main visual/evidence anchor, and key headings should be readable without deep zoom.
-- If the final image looks soft, do not hide behind “4K” labels; inspect native dimensions and try a clearer GPT Image 2 provider/size or deterministic export path.
+- If a generated sub-image looks soft, regenerate that sub-image at a better native size or simplify the slot. Do not fake clarity by upscaling small components unless the manifest labels the resize and the visual is purely decorative.
 
-## Final delivery discipline
+## Final Delivery Discipline
 
 Even if intermediate analysis is extensive, final user-facing output for this skill remains only:
 

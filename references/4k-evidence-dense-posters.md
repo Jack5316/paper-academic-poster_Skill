@@ -1,27 +1,22 @@
 # 4K Evidence-Dense Academic Posters
 
-Use this reference when the user explicitly asks for 4K resolution, stronger information density, or original evidence visuals to be visible in the poster. It extends the default direct GPT Image 2 route; deterministic composition remains opt-in.
+Use this reference when the user explicitly asks for 4K resolution, stronger information density, full-paper coverage, A0 print, or original evidence visuals to be visible in the poster. It extends the default divide-and-compose route.
 
 ## Trigger signals
 
 - User says the poster is not dense enough to cover the whole paper.
-- User asks for `4K`, `A0 print`, or a specific high-resolution output.
+- User asks for `4K`, `A0 print`, `PDF`, or a specific high-resolution output.
 - User says screenshots, dialogue captures, data visuals, or other evidence-class originals from the paper must appear as evidence.
-- The paper is Chinese-text-heavy or contains exact numbers, screenshots, tables, or diagrams that need careful prompt/material selection.
+- The paper is Chinese-text-heavy or contains exact numbers, screenshots, tables, or diagrams that need careful rendering.
 
-## Direct GPT Image 2 default
+## High-resolution divide-and-compose route
 
-By default, classify visuals before prompting: preserve selected evidence-class originals as reference/material `input_image` assets, convert framework/pipeline/architecture diagrams into redraw instructions, and omit redundant source diagrams when the poster already redraws their logic. 4K/high-density means higher native clarity and better argument coverage, not blanket visual inclusion. Ask for one complete native-large portrait poster, preferably `2416x3424` for A-series-ish output or `2160x3840` for 4K portrait when the route accepts it, and after generation only resize the whole image if needed and allowed by the active route. Do not add local labels, local evidence galleries, deterministic text, or screenshot overlays. If this direct route fails QC, regenerate with GPT Image 2 direct mode or ask before changing routes.
+4K/high-density means higher native clarity and better argument coverage, not blanket visual inclusion or tiny fonts.
 
-## Deterministic exception route
-
-Use this exception route only when the user explicitly wants 4K, density, and source evidence fidelity through local deterministic composition, or authorizes local composition after direct GPT Image 2 attempts fail QC.
-
-1. Keep GPT Image 2 for no-text visual atmosphere only. Prompt: `no words, no letters, no QR code, no logos, no watermark`.
-2. Build the full poster deterministically at true A-series portrait ratio. For 4K delivery, use `2896×4096` px (ratio ≈ 0.707, close to 841:1189) or higher.
-3. Extract/crop evidence-class originals with PyMuPDF/page renders or embedded images when available. Convert concept/structure diagrams into deterministic redraws only in this explicit deterministic exception route; otherwise keep them as redraw instructions.
-4. Create a contact sheet of crops and visually inspect before composition. If a crop clips a figure/caption, redo the crop before rendering.
-5. Use a high-density multi-column layout rather than a sparse AI-poster layout. Include:
+1. Build the final poster at true A-series portrait ratio. For 4K delivery, use `2896x4096` px (ratio approx. 0.707, close to 841:1189) or higher. Verify the actual final dimensions.
+2. Classify visuals before production: preserve selected evidence-class originals as source crops, redraw framework/pipeline/architecture diagrams deterministically, and omit redundant source diagrams when the poster already redraws their logic.
+3. Create a contact sheet of candidate crops and inspect it before composition. If a crop clips a figure/caption, redo the crop before rendering.
+4. Increase density with substantive content:
    - metadata + research question;
    - literature/problem context;
    - method or conceptual framework;
@@ -30,20 +25,22 @@ Use this exception route only when the user explicitly wants 4K, density, and so
    - risks/limitations/governance implications;
    - conclusion boundaries/future work;
    - evidence-to-claim mapping.
-6. Add a dedicated evidence gallery with all retained evidence-class originals, labeled by figure number/source and short caption.
-7. Summarize each evidence asset nearby; do not rely on tiny embedded screenshots as the only place where key claims are readable.
-8. Export both `poster.png` and optionally `poster.pdf`; write `manifest.json` with resolution, route boundary, source PDF, evidence assets, and QC status.
+5. Add a dedicated evidence gallery only when evidence is central. Label every retained evidence asset by figure number/source and short caption.
+6. Summarize each evidence asset nearby; do not rely on tiny embedded screenshots as the only place where key claims are readable.
+7. Use GPT Image 2 only for sub-images that benefit from visual generation: no-text atmosphere, hero illustration, icon sheets, stylized dividers, or illustrative mockups. Do not ask GPT Image 2 to render dense tables or exact Chinese text.
+8. Export both `poster.png` and optionally `poster.pdf`; write `manifest.json` with resolution, route boundary, source PDF, evidence assets, generated sub-images, and QC status.
 
 ## QC checklist additions
 
 - Verify actual image dimensions with PIL or equivalent; do not rely on text printed inside the poster.
-- Confirm portrait orientation and A0/A-series ratio (`width/height ≈ 0.707`).
+- Confirm portrait orientation and A0/A-series ratio (`width/height` approx. `0.707`).
 - Confirm all required evidence-class originals are visibly present and labeled.
 - Confirm concept/structure figures are redrawn or omitted as redundant; do not duplicate original diagrams beside their redraws.
 - Confirm density increased by adding substantive content, not just smaller fonts.
 - Check for empty card space, clipped footers, text overlap, and evidence thumbnails too small to interpret.
-- If vision review misreports orientation because of platform preview, trust measured pixel dimensions but still inspect the rendered file visually.
+- Verify local text remains readable in phone/Telegram preview and at 50% zoom.
+- If a generated sub-image is soft, regenerate only that sub-image or reduce its visual role; do not upscale a small full poster and call it 4K.
 
-## Pitfall from session
+## Pitfall
 
-A sparse full GPT Image 2 poster may look attractive but fail three user expectations: true 4K delivery, visible evidence-class originals, and coverage of the full argument. For evidence-dense direct posters, keep the result as one GPT Image 2 image but improve the prompt, classified evidence crops, concept-redraw instructions, native size/provider choice, and regeneration strategy. Use deterministic layout only when the user explicitly prioritizes source-fidelity composition over pure AI direct generation.
+A sparse whole-image AI poster may look attractive but fail three user expectations: true 4K delivery, visible evidence-class originals, and coverage of the full argument. For evidence-dense posters, keep the final artifact as a deterministic composition and improve region planning, crop quality, concept redraws, native export size, and component-level QC.

@@ -1,6 +1,6 @@
 # Production Contract for Paper Academic Poster
 
-Load this reference for every `paper-academic-poster` run. The default production route is a single GPT Image 2 direct whole-poster generation; deterministic/hybrid local composition is an opt-in exception for briefs that explicitly prioritize exact text/layout or source-faithful evidence preservation over direct AI authorship.
+Load this reference for every `paper-academic-poster` run. The default production route is divide-and-compose: decompose the poster into semantic regions, produce each text/diagram/evidence/generated panel through the most reliable method for that region, then deterministically compose the final A0-ratio poster. One-shot GPT Image 2 whole-poster generation is an opt-in exception for briefs that explicitly prioritize model-only authorship over exact text/layout/evidence fidelity.
 
 ## 1. Retrieval and Verification Order
 
@@ -40,18 +40,18 @@ For each candidate visual asset, record:
 - `source_page`: PDF page or URL location
 - `caption`: exact or shortened caption
 - `kind`: evidence / concept / atmosphere
-- `action`: preserve-original / redraw-concept / omit
+- `action`: preserve-original / redraw-concept / generate-subimage / omit
 - `poster_role`: method hero / result proof / example / background / limitation
 - `risk`: too dense / low resolution / non-central / copyright-sensitive / none
 
 Rules:
 
-- Evidence-class visuals include UI screenshots, dialogue captures, terminal/session logs, experiment-scene photos, real observation artifacts, and data charts/tables with exact values. By default, attach only selected high-signal originals from this class as GPT Image 2 reference/material inputs and treat the result as AI-rendered/stylized evidence panels rather than a source-faithful reproduction. If the user explicitly asks for deterministic evidence fidelity, preserve original crops or recreate deterministically from source data only when data is explicitly available.
-- Concept/structure visuals include framework diagrams, box/arrow concept figures, pipelines, and architecture diagrams. For the default direct route, convert them into redraw instructions in the GPT Image 2 prompt; keep ordering, labels, arrows, groupings, and hierarchy. Do not attach the original concept diagram as a visible material panel when the poster already redraws the same logic. Use deterministic redrawing only in an explicitly authorized deterministic/hybrid route.
-- Dense tables: do not ask GPT Image 2 to render full unreadable tables. For the default direct route, supply the table crop as a material and summarize it with one short label or claim. Use a verified excerpt, one key row/column, or a source-faithful mini table only in an explicitly authorized deterministic route.
-- Formulas: include only if central to the contribution. For the default direct route, keep formulas short or omit them; render formulas deterministically only in an explicitly authorized deterministic route.
+- Evidence-class visuals include UI screenshots, dialogue captures, terminal/session logs, experiment-scene photos, real observation artifacts, and data charts/tables with exact values. By default, preserve selected high-signal originals from this class as cleaned source crops inside the deterministic final composition. Use a generated mockup only when extraction is infeasible; label it clearly as illustrative.
+- Concept/structure visuals include framework diagrams, box/arrow concept figures, pipelines, and architecture diagrams. By default, redraw them deterministically in the poster's visual style; keep ordering, labels, arrows, groupings, and hierarchy. Do not paste the original concept diagram beside its redraw unless the source artifact itself is being discussed as evidence.
+- Dense tables: do not ask GPT Image 2 to render full unreadable tables. Use a verified excerpt, one key row/column, or a source crop with a nearby deterministic summary label. For source-fidelity claims, preserve the original crop.
+- Formulas: include only if central to the contribution. Render formulas deterministically or as source crops, not inside generated image text.
 - Captions: shorten aggressively but keep what the evidence demonstrates.
-- Redundancy rule: if a source visual is concept/structure class and the poster prompt already redraws that idea, mark the original as `omit` rather than sending it as another visible panel.
+- Redundancy rule: if a source visual is concept/structure class and the poster redraws that idea, mark the original as `omit` rather than sending it as another visible panel.
 
 ## 3. Poster-Specific Metadata Compression
 
@@ -65,62 +65,47 @@ Rules:
 
 ## 4. Layout Execution Contract
 
-Choose one route and record it in `manifest.json` or `RUN_INFO.md`. Unless the user explicitly requests deterministic/local composition, choose the direct GPT Image 2 whole-poster route.
+Choose one route and record it in `manifest.json` or `RUN_INFO.md`. Unless the user explicitly requests one-shot/direct whole-poster model authorship, choose the divide-and-compose route.
 
-### Direct GPT Image 2 whole-poster route (default)
+### Divide-and-compose route (default)
 
-Use for normal paper-to-poster requests, including Chinese, social-science, information-science, evidence-rich, and design-driven academic posters. This route respects the user's authorship boundary: the final image is generated by GPT Image 2, not assembled afterward.
+Use for normal paper-to-poster requests, including Chinese, social-science, information-science, evidence-rich, design-driven, 4K, and print-oriented academic posters. This route optimizes for factual fidelity, local text quality, high-resolution export, and controllable design.
 
-- Generate the entire poster as one GPT Image 2 image. Do not build a deterministic text/layout layer.
-- Attach selected evidence-class originals as `input_image` reference/material inputs when the route supports image references. Convert concept/structure visuals into redraw instructions instead of sending every original diagram. In Hermes, the built-in `image_generate` only accepts prompt/aspect ratio; use the Codex Responses `image_generation` route directly when evidence reference images are required. See `references/gpt-image-2-direct-reference-assets.md` for the implementation/QC pattern.
-- Prompt the model to incorporate preserved evidence references as visible material/evidence panels and to redraw concept/structure visuals in the unified poster style, but treat the result as AI-rendered/stylized evidence, not a guarantee of pixel-identical source preservation.
-- Keep text short: exact title, authors, and a small set of section labels. Avoid long body paragraphs because GPT Image 2 small text will be unreliable.
-- **Default native size: `2416x3424` portrait, `quality=high`** (A-series-ish ratio, ~8 MB native PNG, ~3-4 min generation). This is the固化 default — do not silently downgrade to 1024×1536 just because Hermes' built-in `image_gen` is convenient. Use the bundled helper `references/codex_direct_image_gen.py` to bypass Hermes' size lock. Only fall back to smaller sizes (1024×1536 / 2048×3072) when the user explicitly asks for a quick preview or when 2416×3424 fails repeatedly. Do not add local text, layout, screenshots, patches, or overlays after generation. Report requested and actual native dimensions separately from any resized delivery file.
-- If comparing multiple GPT Image 2 providers, load `references/direct-provider-comparison.md`, keep prompt/reference inputs comparable, verify actual pixel dimensions, and deliver only pass-line outputs.
-- If QC fails, regenerate using the same direct GPT Image 2 route, simplify the prompt/material set, or ask before switching to deterministic/hybrid composition.
-- Record in the manifest that the route was direct GPT Image 2 with classified evidence-original references, concept-redraw instructions, requested/actual native size, and whole-image resize only if applicable.
+- Build an A0-ratio vertical canvas (841:1189) or user-requested ratio. Use at least `2480x3508`; for 4K delivery use `2896x4096` or higher.
+- Divide the poster into named regions before production: header/metadata, motivation or abstract, method/framework, distinctive anchor, evidence/results, implications/limitations, and footer. Adapt region count to the paper; do not force all slots when a different story structure is better.
+- Assign each region an asset strategy:
+  - `local-text`: exact title, authors, labels, claims, captions, numeric values, venue, DOI/ORCID.
+  - `source-crop`: evidence screenshots, data charts, tables, photos, or original artifacts.
+  - `deterministic-diagram`: concept diagrams, pipelines, architecture boxes/arrows, small tables, formulas.
+  - `generated-subimage`: no-text/low-text atmosphere, hero art, icon sheet, illustrative mockup, stylized connector visual, or background texture.
+  - `mixed-panel`: a generated or cropped visual placed under/next to deterministic labels and captions.
+- Generate sub-images independently. Prompts must be slot-specific and should avoid dense text; any text inside a generated sub-image is non-authoritative until inspected.
+- Compose the final poster deterministically with local fonts, measured margins, explicit grid tracks, source crops, diagrams, and generated sub-images. Do not use a one-shot AI poster as the base layer.
+- Export `poster.png`; export `poster.pdf` when useful for print. Record requested and actual output dimensions.
+- If QC fails, fix the affected region and re-export. Regenerate only the failed sub-image or redraw the failed diagram; do not restart the whole poster unless the overall design premise is wrong.
 
-### Evidence-light AI subcase
+### One-shot GPT Image 2 route (explicit opt-in)
 
-Use this lighter subcase when exact embedded evidence is not required and no source crops are useful.
+Use only when the user explicitly asks for GPT Image 2 一站式生成, direct whole-poster, model-only authorship, or no local layout/text composition.
 
-- Build a compact English prompt with exact title/author and short section labels.
-- Use active GPT Image 2 route only.
-- Inspect the image; regenerate if text/logic/facts fail.
+- Generate the entire poster as one GPT Image 2 image.
+- Attach selected evidence-class originals as references only when the route supports them.
+- Name the trade-off: this route can be visually coherent but cannot guarantee exact small text, readable evidence, or pixel-faithful source reproduction.
+- If QC fails, regenerate in the same one-shot route or ask before switching back to divide-and-compose.
 
-### Evidence-rich deterministic route
+### Adaptive Chinese conceptual / case-anatomy design
 
-Use only when the user explicitly requests deterministic exact text/layout, source-faithful figure/table/photo preservation, print/PDF production, or authorizes local composition after direct generation fails QC.
+Use this design-reading framework for Chinese conceptual, social-science, information-science, library-and-information-science, AI-agent, workflow, or system papers when the user asks for a polished “学术海报”. It is not a separate production route: apply these judgments to the divide-and-compose region plan, source crop selection, deterministic redraws, and generated sub-image prompts.
 
-- Build an A0-ratio vertical canvas (841:1189) or user-requested ratio.
-- Use deterministic text rendering for title, headings, bullets, numeric claims, citations, formulas, and table excerpts.
-- Insert evidence assets from extracted original files.
-- Use generated art only for background/conceptual panels, not exact evidence.
-- Export `poster.png`; export `poster.pdf` if print workflow is useful.
-
-### Hybrid route
-
-Use only when visual unity is needed but the user explicitly prioritizes text/evidence accuracy over direct GPT Image 2 whole-poster authorship.
-
-- Generate background/hero/concept panel with GPT Image 2, preferably with no text at all (`no words, no letters, no QR code, no logos, no watermark`).
-- Compose the entire poster deterministically with exact text and evidence assets.
-- Use a true A0-ratio canvas (841:1189; e.g. 2480×3508 for delivery PNG) and local fonts for all Chinese/English text.
-- Do not patch a flawed full AI poster; use AI assets as components inside a deterministic whole page.
-- If the poster contains dense Chinese text, exact numbers, or multiple source figures, consult `references/hybrid-deterministic-composition.md` before rendering.
-
-### Adaptive Chinese conceptual / case-anatomy route
-
-Use this design-reading framework for Chinese conceptual, social-science, information-science, library-and-information-science, AI-agent, workflow, or system papers when the user asks for a polished “学术海报”. It is not a separate local-composition route by default: apply these judgments to the direct GPT Image 2 prompt and material selection unless the user explicitly authorizes deterministic/hybrid composition.
-
-- Start with a design reading before layout: identify the paper’s central thesis, the conceptual tension or transformation it argues for, the strongest evidence/case anchor, and the 1–2 visual metaphors or structural contrasts that can carry the poster.
+- Start with a design reading before layout: identify the paper’s central thesis, the conceptual tension or transformation it argues for, the strongest evidence/case anchor, and the 1-2 visual metaphors or structural contrasts that can carry the poster.
 - Make aggressive content choices. Do not try to represent every section. Every title, crop, card, icon, and number must earn its space by advancing the central thesis or evidencing a key claim.
 - Use formal academic metadata only to the extent it supports the poster: exact Chinese title, optional English subtitle from the paper, authors, institution, venue/journal or network-first date, and compact ISSN/CN/URL/ORCID/keyword metadata when available. Do not invent missing metadata; omit instead.
-- The opening visual move should reveal the paper’s argument, not merely enlarge text. Examples include a before→after contrast, a role transition, a conceptual map, a case dissection, or a high-signal evidence juxtaposition. Choose the move that best fits the source.
-- For direct GPT Image 2 generation, describe concept-level theoretical diagrams clearly as redraw instructions. Do not attach original source diagrams as visible material panels when the poster redraws the same logic. If and only if deterministic composition is explicitly authorized, redraw concept-level diagrams deterministically while preserving labels, ordering, arrows, and qualifiers. Do not locally redraw evidence charts/tables/screenshots unless explicit source data supports deterministic reconstruction and the deterministic route is active.
+- The opening visual move should reveal the paper’s argument, not merely enlarge text. Examples include a before-after contrast, a role transition, a conceptual map, a case dissection, or a high-signal evidence juxtaposition. Choose the move that best fits the source.
+- Redraw concept-level theoretical diagrams deterministically while preserving labels, ordering, arrows, and qualifiers. Do not attach original source diagrams as visible material panels when the poster redraws the same logic. Do not redraw evidence charts/tables/screenshots unless explicit source data supports reconstruction; otherwise preserve source crops.
 - For evidence-class screenshots/tables/data visuals, select only the few that best serve the thesis. Crop with intent: remove margins/noise, keep labels needed for evidence, and add a nearby source-anchored interpretation. Avoid both unreadable tiny galleries and decorative oversized crops that do not advance the argument.
 - Use impact/contribution/risk cards only when they sharpen the argument. The number, position, color, and shape of cards are adaptive decisions, not defaults. Keep body text concise and source-anchored.
 - Visual tone should be chosen from the paper’s topic and materials: formal academic, magazine-like, technical blueprint, archival/documentary, evidence wall, or other fitting grammar. Maintain aesthetic discipline: strong hierarchy, purposeful whitespace, consistent palette, and no decorative clutter.
-- Record in the manifest that the route was direct GPT Image 2 with adaptive Chinese conceptual / case-anatomy prompt design, including the design reading, key omissions, source/material assets supplied, and the image/provider route.
+- Record in the manifest that the route was divide-and-compose with adaptive Chinese conceptual / case-anatomy design, including the design reading, key omissions, source assets, generated sub-images, deterministic redraws, and final export path.
 
 ## 5. Manifest Contract
 
@@ -135,7 +120,9 @@ Write `manifest.json` or `RUN_INFO.md` with at least:
 - `run_date`
 - `input_boundary`: what source was used
 - `paper_metadata`: title/authors/venue/year/DOI when available
-- `visual_assets_used`: list of figure/table/screenshot ids, class, action, and whether the original was preserved, redrawn, or omitted as redundant
+- `visual_assets_used`: list of figure/table/screenshot ids, class, action, and whether the original was preserved, redrawn, generated, or omitted as redundant
+- `region_plan`: list of poster regions, asset strategy, source/generator, and final placement
+- `generated_subimages`: prompt path, model/provider, requested size, actual size, QC status
 - `output_files`: poster image/PDF paths
 - `qc_status`: pass/fail plus short notes
 - `naming_exception`: if an external tool forces fixed filenames
@@ -148,16 +135,16 @@ Before delivery, verify:
 - Authors/venue/year/DOI are either correct or omitted.
 - Every numeric claim appears in the source.
 - No invented dataset/baseline/result appears.
-- For default direct GPT Image 2 route, selected evidence-class originals were supplied as reference/material images or reference URLs and are visibly represented without local overlay. For deterministic exception routes, evidence figures are original or source-data deterministic.
+- Selected evidence-class originals are preserved as source crops or source-data deterministic renderings. Generated mockups are labeled as illustrative.
 - Concept/structure diagrams are redrawn or omitted as redundant; if redrawn, they preserve the method’s logical order and relationships.
 - No original concept/structure diagram is duplicated as a source evidence panel when the poster already redraws the same logic.
 - Text is legible at poster scale; no long paragraphs.
 - No QR code, fake logo, placeholder, blank key panel, gibberish, lorem ipsum, pseudo-text, or stray watermark.
 - High-contrast key claim panels: vision/OCR should be able to read the claim, not mistake it for an empty placeholder.
-- Mobile/Telegram preview hierarchy: at 50% zoom the poster’s chosen hierarchy must still be evident—the title/topic, central argument, main visual/evidence anchor, and key section headings should be readable. If the design only works when fully zoomed in, simplify, crop harder, or regenerate at a clearer native size before delivery.
+- Mobile/Telegram preview hierarchy: at 50% zoom the poster’s chosen hierarchy must still be evident: the title/topic, central argument, main visual/evidence anchor, and key section headings should be readable. If the design only works when fully zoomed in, simplify, crop harder, or recompose before delivery.
 - Wrapped text inside panels: long footers, quality-gate notes, and source-boundary notes must not clip at the right edge.
 - Brand/model spelling is consistent across the poster (for example, `OpenClaw` must not become `Openclaw`).
 - Final image path exists and opens.
-- Clarity provenance is explicit in the manifest: final native dimensions, whether the image was upscaled, and which GPT Image 2/provider route (native/Codex, YouMind, ListenHub, or deterministic-only) was used.
+- Clarity provenance is explicit in the manifest: final native dimensions, whether any sub-image was upscaled, which sub-images used GPT Image 2/provider routes, and which regions were deterministic/source-preserved.
 
-If any scientific-fidelity item fails, do not deliver. Fix by regeneration in direct GPT Image 2 mode, simplify the prompt/materials, or use deterministic whole-poster composition only when that route is explicitly allowed by the user. Do not silently switch to deterministic/hybrid composition after QC failure.
+If any scientific-fidelity item fails, do not deliver. Fix the relevant region, regenerate the failed sub-image, redraw the failed diagram, or simplify the layout and re-export. Do not silently switch to one-shot whole-poster generation after a divide-and-compose QC failure.

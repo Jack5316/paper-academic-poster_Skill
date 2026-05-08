@@ -1,57 +1,58 @@
-# GPT Image 2 Direct Poster with Reference Assets
+# GPT Image 2 Sub-Image Generation and Reference Assets
 
-Use this note for the default `paper-academic-poster` implementation: one-stop / full-image GPT Image 2 academic poster generation with classified evidence-class originals reflected as model materials and concept/structure figures converted into redraw instructions.
+Use this note when `paper-academic-poster` needs GPT Image 2 as a component generator inside the default divide-and-compose workflow, or when the user explicitly opts into a one-shot GPT Image 2 whole-poster preview.
 
 ## Core lesson
 
-Do **not** satisfy this request with deterministic text/layout/screenshot overlays. Preserved evidence-class originals are materials for GPT Image 2, not layers to paste after generation.
+The default poster is not a single model-returned image. GPT Image 2 produces bounded sub-images: hero visuals, no-text atmosphere panels, icon sheets, stylized evidence backdrops, illustrative mockups, or low-text concept illustrations. The final poster is composed deterministically with local text, source crops, diagrams, and these generated components.
 
-This route optimizes for the Skill's default authorship boundary: the delivered poster is one GPT Image 2 whole-image generation. It does **not** guarantee pixel-identical evidence reproduction; it can only visually incorporate/stylize supplied evidence references while redrawing conceptual structures from prompt instructions.
+Preserved evidence-class originals are source assets for the final composition. Do not replace exact evidence with model-rendered approximations unless extraction is impossible and the panel is clearly labeled as an illustrative mockup.
 
 ## When to use
 
-- Any normal paper-to-poster run where the user has not explicitly requested deterministic local composition.
-- User says: “GPT Image 2 一站式生成”, “全图生成”, “direct whole-poster”, “不要本地填文字/排版”, or complains that the result was locally composed.
-- User also wants evidence-class PDF screenshots, dialogue captures, data visuals, or observation artifacts reflected as evidence/material.
-- The final deliverable can tolerate imperfect small text and stylized evidence panels.
+- A poster region needs visual richness that deterministic drawing would make too flat: hero art, background texture, editorial vignette, concept atmosphere, or icon family.
+- An evidence-class visual cannot be extracted cleanly and a labeled high-fidelity mockup is acceptable.
+- A user asks to compare GPT Image 2 providers for generated **sub-images**.
+- A user explicitly says “GPT Image 2 一站式生成”, “全图生成”, “direct whole-poster”, or “不要本地填文字/排版”; in that case this note also covers the opt-in one-shot route.
 
 ## Material preparation
 
 1. Extract PDF text and candidate visuals as usual.
-2. Classify every candidate as evidence / concept / atmosphere before building the prompt.
-3. Preserve only selected evidence-class originals as `input_image` material references: UI/dialogue screenshots, terminal/session logs, experiment-scene photos, observation artifacts, and data charts/tables with exact values.
-4. Convert concept/structure visuals (frameworks, box/arrow diagrams, pipelines, architectures) into redraw sub-prompts that preserve labels, ordering, arrows, groupings, and logic.
-5. Omit original concept diagrams when the poster already redraws the same idea; too many references dilute the model's attention and create duplicated panels.
-6. Create clean crops or a compact evidence material board/contact sheet if the route has limited image slots.
-7. Keep a manifest of which visuals were preserved, redrawn, or omitted as redundant.
+2. Classify every candidate as evidence / concept / atmosphere before prompting.
+3. Preserve selected evidence-class originals as source crops for final composition.
+4. Convert concept/structure visuals into deterministic redraw specs when exact labels and arrows matter.
+5. Use GPT Image 2 for sub-images that can tolerate stylization, especially those with no text or only large display labels.
+6. Create clean crops or compact material boards only for sub-image prompts that genuinely need visual reference.
+7. Keep a manifest of which visuals were preserved, redrawn, generated, or omitted as redundant.
 
-## Generation prompt pattern
+## Sub-image prompt pattern
 
-Use a short English prompt, with exact title/author and only a few short section labels:
+Use short English prompts with a precise slot role and no dense text:
 
 ```text
-Create one complete vertical A0 academic conference poster as a single GPT Image 2 image.
-Use the attached evidence-class originals as visible material/evidence panels integrated into the design.
-Redraw the paper's concept/framework/pipeline/architecture logic in the poster's unified visual style instead of copying the original diagrams as separate panels.
-Do not add QR codes, fake logos, lorem ipsum, placeholder text, or dense paragraphs.
-Use only short section labels and a few large readable claims.
-Modern scholarly information-design style, portrait layout, high contrast, conference poster quality.
+Create one poster component, not a full poster.
+Component role: <hero / background / icon sheet / illustrative mockup / concept visual>.
+Final slot size: <width>x<height> px inside an A0 portrait poster.
+Use the attached reference only for visual structure/material cues.
+No QR code, no watermark, no fake logos, no lorem ipsum.
+Avoid small text. Leave clean negative space where local labels will be overlaid later.
+Style: <palette, line weight, texture, perspective, mood>.
 ```
 
-If the paper is Chinese, still prompt mostly in English for layout control, but include exact Chinese title/author strings and a small set of Chinese labels that matter. Keep body text minimal and let diagrams, evidence panels, arrows, cards, and visual hierarchy carry the message.
+For Chinese papers, keep generated sub-image text to zero whenever possible. Render Chinese titles, labels, captions, and numeric claims locally during composition. If the sub-image must contain Chinese, use only a few large labels and verify them before using the asset.
 
-For Chinese conceptual, social-science, information-science, or AI-agent papers, add a compact anchor block rather than long prose:
+For evidence mockups, include:
 
 ```text
-Distinctive anchor: <named system, framework, case, dataset, or visual evidence that makes this paper memorable>.
-Make this anchor visually dominant with one large model-rendered evidence/diagram zone.
-Use short Chinese labels only: <6-10 labels>.
-No local text will be added later, so do not rely on tiny body paragraphs.
+This is an illustrative mockup panel, not a real screenshot.
+Recreate the platform visual language: <Feishu / WeChat / terminal / web UI>.
+Use only the specified large labels; avoid tiny body text.
+Reserve a corner badge area for the local text label "示意图 / Illustrative Mockup".
 ```
 
 ## Hermes/Codex implementation note
 
-**Default poster route uses the bundled helper script `references/codex_direct_image_gen.py`**. It calls Codex Responses' `image_generation` tool directly with `model=gpt-image-2`, `size=2416x3424`, `quality=high`, bypassing Hermes' built-in `image_gen` 1024×1536 size lock. The helper reuses Hermes' `_build_codex_client()` for OAuth only.
+Use the bundled helper script `references/codex_direct_image_gen.py` for GPT Image 2 sub-images. It calls Codex Responses' `image_generation` tool directly with `model=gpt-image-2`, explicit `size`, and `quality=high`, bypassing Hermes' built-in `image_gen` 1024x1536 size lock. The helper reuses Hermes' `_build_codex_client()` for OAuth only.
 
 Invocation:
 
@@ -59,35 +60,35 @@ Invocation:
 HERMES_AGENT_HOME="${HERMES_AGENT_HOME:-$HOME/.hermes/hermes-agent}"
 HERMES_PY="$HERMES_AGENT_HOME/venv/bin/python3"
 cd "$HERMES_AGENT_HOME"
-"$HERMES_PY" "$HOME/.claude/skills/paper-academic-poster/references/codex_direct_image_gen.py" \
-    /path/to/prompt.txt \
-    /path/to/output.png \
-    2416x3424 \
+"$HERMES_PY" "/path/to/paper-academic-poster/references/codex_direct_image_gen.py" \
+    /path/to/subimage_prompt.txt \
+    /path/to/subimage.png \
+    1536x1024 \
     high
 ```
 
-Defaults inside the helper: `size=2048x3072`, `quality=high`. Override via positional args 3 and 4. Validated sizes: `2416x3424` (A-series portrait, ~8 MB, ~3-4 min), `2048x3072` (~7 MB, ~2-3 min), `2160x3840` (4K portrait), `1024x1536` (Hermes default, ~2 MB).
+Choose size from the final slot, not from the whole poster. Common choices: `1536x1024` for wide panels, `1024x1536` for vertical panels, `2048x2048` for square icon/texture sheets, `2048x3072` or `2416x3424` only for large hero panels or explicit one-shot previews.
 
-For GPT Image 2 generation **with evidence reference images**, extend the helper or call Codex Responses directly attaching each selected evidence original as `input_image`. Observed pattern:
+For GPT Image 2 generation with reference images, extend the helper or call Codex Responses directly attaching selected inputs as `input_image`. Save the returned image as an intermediate asset, inspect it, then place it into the deterministic final composition.
 
-- Use the Hermes official plugin helper to obtain the Codex OAuth/API client when available.
-- Send a Responses request containing:
-  - text prompt;
-  - multiple selected evidence-original `input_image` items as data URLs or supported image file inputs;
-  - `tools: [{"type": "image_generation", "size": "2416x3424", "quality": "high"}]`;
-- Save the returned generated image as the master artifact.
-- If a native-large route fails or returns smaller than requested, resize the **whole image only** when the active route permits it; do not add text, screenshots, labels, or patches after generation. Report native size separately from resized delivery size so a resized small image is not mistaken for native high detail.
+## Optional one-shot whole-poster route
+
+Use only when the user explicitly asks for direct whole-poster/model-only authorship.
+
+- Generate one complete vertical A0-style poster as a single GPT Image 2 image.
+- Keep text short and accept that small text/evidence may be unreliable.
+- Do not add local text or patches after generation if the user requested model-only authorship.
+- If exact text, source fidelity, or print layout matters, recommend the default divide-and-compose route instead.
 
 ## QC checklist
 
-- The output is a single generated poster, not a local composite.
-- Selected evidence-class originals are visibly represented as material/evidence panels.
-- Concept/structure visuals are redrawn in the poster style or omitted as redundant, not duplicated as original panels.
-- No locally added text or screenshot layers after generation.
-- Title/author are at least broadly readable; body text is not relied on for exact facts.
+- The sub-image matches its assigned slot and does not look like a complete poster unless the one-shot route was explicitly requested.
+- Generated sub-images contain no unreadable fake text in areas that should be clean.
+- Evidence-class originals are preserved as source crops unless the manifest marks a generated mockup as illustrative.
+- Concept/structure visuals are deterministic redraws when exact labels/arrows matter.
 - No QR code, fake logo, placeholder, lorem ipsum, large gibberish blocks, or watermark.
-- Manifest states: `GPT Image 2 direct whole-poster generation with classified evidence-original references and concept-redraw instructions; whole-image resize only if applicable`.
+- Manifest states each generated sub-image's prompt path, provider/model, requested size, actual size, placement, and QC result.
 
 ## Pitfall
 
-If the user asks for both direct GPT Image 2 and exact evidence fidelity, name the trade-off: direct GPT Image 2 can incorporate evidence originals as materials, but cannot promise exact readable reproduction. Do not silently switch to hybrid deterministic composition unless the user authorizes that trade-off. If the user complains about duplicated figures, first classify assets and remove redundant original concept diagrams before changing routes.
+Do not use a one-shot GPT Image 2 poster as a background and then patch it locally. In divide-and-compose mode, generate components only; in one-shot mode, deliver the model image as-is and accept the trade-off.
